@@ -1,0 +1,10 @@
+{
+	"debugMode": true,
+	"fps": 60,
+	"stats": {
+		"mode": 0
+	},
+	"scenes": {
+		"path": "assets/json/scenes.json"
+	}
+}
