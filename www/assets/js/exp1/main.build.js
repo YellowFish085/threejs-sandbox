@@ -43789,6 +43789,55 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+var Inputs = function () {
+	function Inputs(renderer) {
+		_classCallCheck(this, Inputs);
+
+		this._renderer = renderer;
+
+		this._mousePosition = {
+			x: 0,
+			y: 0
+		};
+	}
+
+	_createClass(Inputs, [{
+		key: 'initEvents',
+		value: function initEvents() {
+			var a = document.addEventListener('mousemove', this.mouseEvents.bind(this), false);
+		}
+	}, {
+		key: 'mouseEvents',
+		value: function mouseEvents(event) {
+			this._mousePosition.x = event.clientX - window.innerWidth / 2;
+			this._mousePosition.y = event.clientY - window.innerHeight / 2;
+
+			this._renderer.updateCameraPosition(this._mousePosition);
+		}
+	}]);
+
+	return Inputs;
+}();
+
+exports.default = Inputs;
+
+},{"../_classes/utils":8}],11:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _utils = require('../_classes/utils');
+
+var _utils2 = _interopRequireDefault(_utils);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 require('es6-promise').polyfill();
 require('isomorphic-fetch');
 
@@ -43875,7 +43924,7 @@ var Loader = function () {
 
 exports.default = Loader;
 
-},{"../_classes/utils":8,"es6-promise":2,"isomorphic-fetch":3}],11:[function(require,module,exports){
+},{"../_classes/utils":8,"es6-promise":2,"isomorphic-fetch":3}],12:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -43900,6 +43949,10 @@ var _renderer = require('./renderer/renderer');
 
 var _renderer2 = _interopRequireDefault(_renderer);
 
+var _inputs = require('./events/inputs');
+
+var _inputs2 = _interopRequireDefault(_inputs);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
@@ -43916,6 +43969,7 @@ var App = function () {
 		this._config = null;
 		this._stats = null;
 		this._renderer = null;
+		this._inputs = null;
 
 		var init = this.init();
 		init.then(function () {
@@ -43941,6 +43995,7 @@ var App = function () {
 
 				that._stats = new _stats2.default();
 				that._renderer = new _renderer2.default(that._config.domElement);
+				that._inputs = new _inputs2.default(that._renderer);
 			}).then(function () {
 				return Promise.all([that._stats.init({
 					mode: that._config.stats.mode,
@@ -43960,6 +44015,7 @@ var App = function () {
 		value: function run() {
 			_utils2.default.log('Running!');
 			this._renderer.setupScene();
+			this._inputs.initEvents();
 			this.render();
 		}
 
@@ -43984,7 +44040,7 @@ var app = new App({
 	}
 });
 
-},{"./_classes/utils":8,"./loader/loader":10,"./renderer/renderer":14,"./stats/stats":19,"es6-promise":2,"three":6}],12:[function(require,module,exports){
+},{"./_classes/utils":8,"./events/inputs":10,"./loader/loader":11,"./renderer/renderer":15,"./stats/stats":20,"es6-promise":2,"three":6}],13:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -44053,7 +44109,7 @@ var MaterialsFactory = function () {
 
 exports.default = MaterialsFactory;
 
-},{"../_classes/utils":8,"three":6}],13:[function(require,module,exports){
+},{"../_classes/utils":8,"three":6}],14:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -44120,7 +44176,7 @@ var MeshesFactory = function () {
 
 exports.default = MeshesFactory;
 
-},{"../_classes/utils":8,"three":6}],14:[function(require,module,exports){
+},{"../_classes/utils":8,"three":6}],15:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -44221,6 +44277,14 @@ var Renderer = function () {
 		value: function render() {
 			this._threeRenderer.render(this._scenesManager.currentScene.threeScene, this._scenesManager.currentScene.threeCamera);
 		}
+	}, {
+		key: 'updateCameraPosition',
+		value: function updateCameraPosition(mousePosition) {
+			this._scenesManager.currentScene.threeCamera.position.x = (mousePosition.x - this._scenesManager.currentScene.threeCamera.position.x) * 0.05;
+			this._scenesManager.currentScene.threeCamera.position.y = (mousePosition.y - this._scenesManager.currentScene.threeCamera.position.y) * 0.05;
+
+			this._scenesManager.currentScene.threeCamera.lookAt(this._scenesManager.currentScene.threeScene.position);
+		}
 	}]);
 
 	return Renderer;
@@ -44228,7 +44292,7 @@ var Renderer = function () {
 
 exports.default = Renderer;
 
-},{"../_classes/utils":8,"../scenes/scenesManager":17,"./rendererFactory":15,"three":6}],15:[function(require,module,exports){
+},{"../_classes/utils":8,"../scenes/scenesManager":18,"./rendererFactory":16,"three":6}],16:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -44313,7 +44377,7 @@ var RendererFactory = function () {
 
 exports.default = RendererFactory;
 
-},{"../_classes/utils":8,"three":6}],16:[function(require,module,exports){
+},{"../_classes/utils":8,"three":6}],17:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -44378,7 +44442,7 @@ var SceneFactory = function () {
 
 exports.default = SceneFactory;
 
-},{"../_classes/utils":8,"./scenes_types/scene":18}],17:[function(require,module,exports){
+},{"../_classes/utils":8,"./scenes_types/scene":19}],18:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -44547,7 +44611,7 @@ var ScenesManager = function () {
 
 exports.default = ScenesManager;
 
-},{"../_classes/utils":8,"../loader/loader":10,"./sceneFactory":16,"es6-promise":2,"isomorphic-fetch":3}],18:[function(require,module,exports){
+},{"../_classes/utils":8,"../loader/loader":11,"./sceneFactory":17,"es6-promise":2,"isomorphic-fetch":3}],19:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -44642,7 +44706,7 @@ var Scene = function (_IdentifiableObject) {
 
 exports.default = Scene;
 
-},{"../../_classes/identifiableObject":7,"../../_classes/utils":8,"../../cameras/cameraFactory":9,"../../materials/materialsFactory":12,"../../meshes/meshesFactory":13,"three":6}],19:[function(require,module,exports){
+},{"../../_classes/identifiableObject":7,"../../_classes/utils":8,"../../cameras/cameraFactory":9,"../../materials/materialsFactory":13,"../../meshes/meshesFactory":14,"three":6}],20:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -44721,7 +44785,7 @@ var AppStats = function () {
 
 exports.default = AppStats;
 
-},{"stats.js":5}]},{},[11])
+},{"stats.js":5}]},{},[12])
 
 
 //# sourceMappingURL=../_map/exp1/main.build.js.map
