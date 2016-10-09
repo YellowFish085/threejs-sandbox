@@ -43644,7 +43644,7 @@ var Utils = function () {
 		key: 'log',
 		value: function log(msg) {
 			if (debugMode) {
-				console.log(msg);
+				console.trace(msg);
 			}
 		}
 	}, {
@@ -43707,6 +43707,9 @@ var App = function () {
 			var that = this;
 			return this.loadConfig().then(function (config) {
 				that._config = config;
+
+				_utils2.default.setDebugMode(that._config.debugMode);
+
 				that.initContent();
 
 				that._isReady = true;
@@ -43725,10 +43728,6 @@ var App = function () {
 	}, {
 		key: 'initContent',
 		value: function initContent() {
-			this._debugMode = this._config.debugMode;
-			this._scenesPath = this._config.scenes.path;
-			_utils2.default.setDebugMode(this._debugMode);
-
 			this._stats = new _stats2.default({
 				mode: this._config.stats.mode,
 				fps: this._config.fps
@@ -43736,7 +43735,8 @@ var App = function () {
 			this._stats.init();
 
 			this._scenesManager = new _scenesManager2.default();
-			this._scenesManager.init();
+			this._scenesManager.init(this._config.scenes.path);
+			_utils2.default.log(this._scenesManager.scenes);
 		}
 	}, {
 		key: 'run',
@@ -43758,7 +43758,7 @@ app.init().then(function () {
 	app.run();
 });
 
-},{"./_classes/utils":8,"./scenes/scenesManager":11,"./stats/stats":12,"es6-promise":2,"isomorphic-fetch":3,"three":6}],10:[function(require,module,exports){
+},{"./_classes/utils":8,"./scenes/scenesManager":12,"./stats/stats":13,"es6-promise":2,"isomorphic-fetch":3,"three":6}],10:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -43797,16 +43797,8 @@ var Scene = function (_IdentifiableObject) {
 
 		var _this = _possibleConstructorReturn(this, (Scene.__proto__ || Object.getPrototypeOf(Scene)).call(this));
 
-		if (!datas) {
-			datas = {};
-		}
-
-		// Initialize scene datas
-		_utils2.default.extendObject(datas, {
-			name: 'Default name'
-		});
-
 		_this._name = datas.name;
+		_this._scene = new THREE.Scene();
 		return _this;
 	}
 
@@ -43843,6 +43835,53 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+var SceneFactory = function () {
+	function SceneFactory() {
+		_classCallCheck(this, SceneFactory);
+	}
+
+	_createClass(SceneFactory, null, [{
+		key: 'createScene',
+		value: function createScene(options) {
+			// Initialize scene datas
+			_utils2.default.extendObject(options, {
+				name: 'Default name'
+			});
+
+			if (options.type === "Scene") {
+				return new _scene2.default(options);
+			} else {
+				return new _scene2.default(options);
+			}
+		}
+	}]);
+
+	return SceneFactory;
+}();
+
+exports.default = SceneFactory;
+
+},{"../_classes/utils":8,"./scene":10}],12:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _utils = require('../_classes/utils');
+
+var _utils2 = _interopRequireDefault(_utils);
+
+var _sceneFactory = require('./sceneFactory');
+
+var _sceneFactory2 = _interopRequireDefault(_sceneFactory);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 require('es6-promise').polyfill();
 require('isomorphic-fetch');
 
@@ -43853,6 +43892,12 @@ var ScenesManager = function () {
 		this._scenes = [];
 	}
 
+	/**
+  * Initialize scenesManager
+  * @param {string} path - Path to the json with the scenes datas
+  */
+
+
 	_createClass(ScenesManager, [{
 		key: 'init',
 		value: function init(path) {
@@ -43861,7 +43906,7 @@ var ScenesManager = function () {
 
 				fetch(path).then(function (response) {
 					if (response.status >= 400) {
-						throw new Error("Bad response from server");
+						throw new Error('Bad response from server');
 					}
 					return response.json();
 				}).then(function (datas) {
@@ -43869,40 +43914,94 @@ var ScenesManager = function () {
 					that.initScenes(datas.scenes);
 				});
 			} else {
-				// Create an empty scene
-				this.add(new _scene2.default());
+				_utils2.default.log('Empty path for scenes datas');
 			}
 		}
+
+		/**
+   * Initialize scenes
+   * @param {JSON} scenesDatas - JSON with the datas
+   * @return {boolean} true if all scenes are initialized
+   */
+
 	}, {
 		key: 'initScenes',
-		value: function initScenes(scenes) {
-			for (var i = 0; i < scenes.length; i++) {
-				this.add(new _scene2.default(scenes[i]));
-			}
-		}
-	}, {
-		key: 'add',
-		value: function add(scene) {
-			var exists = false;
-			for (var i = 0; i < this._scenes.length; i++) {
-				if (this._scenes[i].id === scene.id) {
-					_utils2.default.log('Scene ' + scene.id + ' already in SceneManager. Skip...');
+		value: function initScenes(scenesDatas) {
+			for (var i = 0; i < scenesDatas.length; i++) {
+				if (!this.add(scenesDatas[i])) {
+					throw new Error('Error while adding scene.');
+					_utils2.default.log(scenesDatas[i]);
 					return false;
 				}
 			}
 
-			this._scenes.push(scene);
 			return true;
 		}
+
+		/**
+   * Add a scene
+   * @param {JSON} sceneDatas - JSON with the datas
+   * @return {boolean} true if scene is added
+   */
+
+	}, {
+		key: 'add',
+		value: function add(sceneDatas) {
+			if (!sceneDatas) {
+				return false;
+			}
+
+			var exists = false;
+			for (var i = 0; i < this._scenes.length; i++) {
+				if (this._scenes[i].id === sceneDatas.id) {
+					_utils2.default.log('Scene ' + sceneDatas.id + ' already in SceneManager. Skip...');
+					return false;
+				}
+			}
+
+			var newScene = _sceneFactory2.default.createScene(sceneDatas);
+			if (!newScene) {
+				return false;
+			}
+
+			this._scenes.push(newScene);
+			return true;
+		}
+
+		/**
+   * Remove scene
+   * @param {string} id - Id of the scene
+   * @return {boolean} true if scene is removed
+   */
+
 	}, {
 		key: 'remove',
-		value: function remove(scene) {
-			this._scenes = this._scenes.filter(function (el) {
-				return el.id !== scene.id;
+		value: function remove(id) {
+			var newScenesArray = this._scenes.filter(function (el) {
+				return el.id !== id;
 			});
+
+			if (newScenesArray.length != this._scenes.length) {
+				this._scenes.length = newScenesArray;
+				return true;
+			} else {
+				return false;
+			}
 		}
+
+		/**
+   * Return scenes
+   * @return {array} Array with scenes
+   */
+
 	}, {
 		key: 'scene',
+
+
+		/**
+   * Return a scene
+   * @param {string} id - Id of the scene
+   */
 		value: function scene(id) {
 			return this._scenes.filter(function (el) {
 				return el.id === id;
@@ -43920,7 +44019,7 @@ var ScenesManager = function () {
 
 exports.default = ScenesManager;
 
-},{"../_classes/utils":8,"./scene":10,"es6-promise":2,"isomorphic-fetch":3}],12:[function(require,module,exports){
+},{"../_classes/utils":8,"./sceneFactory":11,"es6-promise":2,"isomorphic-fetch":3}],13:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
