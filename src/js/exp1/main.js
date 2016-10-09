@@ -9,6 +9,7 @@ import Loader from './loader/loader';
 
 import Stats from './stats/stats';
 import Renderer from './renderer/renderer';
+import Inputs from './events/inputs';
 
 class App {
 	constructor(options) {
@@ -16,6 +17,7 @@ class App {
 		this._config     = null;
 		this._stats      = null;
 		this._renderer   = null;
+		this._inputs     = null;
 
 		var init = this.init();
 		init.then(function() {
@@ -38,6 +40,7 @@ class App {
 
 				that._stats    = new Stats();
 				that._renderer = new Renderer(that._config.domElement);
+				that._inputs   = new Inputs(that._renderer);
 			})
 			.then(function() {
 				return Promise.all([
@@ -59,6 +62,7 @@ class App {
 	run() {
 		Utils.log('Running!');
 		this._renderer.setupScene();
+		this._inputs.initEvents();
 		this.render();
 	}
 

@@ -63,6 +63,13 @@ class Renderer {
 			this._scenesManager.currentScene.threeCamera
 		);
 	}
+
+	updateCameraPosition(mousePosition) {
+		this._scenesManager.currentScene.threeCamera.position.x = (mousePosition.x - this._scenesManager.currentScene.threeCamera.position.x) * 0.05;
+		this._scenesManager.currentScene.threeCamera.position.y = (mousePosition.y - this._scenesManager.currentScene.threeCamera.position.y) * 0.05;
+
+		this._scenesManager.currentScene.threeCamera.lookAt(this._scenesManager.currentScene.threeScene.position);
+	}
 }
 
 export default Renderer;
