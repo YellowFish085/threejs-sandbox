@@ -20,6 +20,9 @@ class App {
 		return this.loadConfig()
 			.then(function(config) {
 				that._config = config;
+				
+				Utils.setDebugMode(that._config.debugMode);
+
 				that.initContent();
 
 				that._isReady = true;
@@ -37,10 +40,6 @@ class App {
 	}
 
 	initContent() {
-		this._debugMode  = this._config.debugMode;
-		this._scenesPath = this._config.scenes.path;
-		Utils.setDebugMode(this._debugMode);
-
 		this._stats = new Stats({
 			mode: this._config.stats.mode,
 			fps: this._config.fps
@@ -48,7 +47,8 @@ class App {
 		this._stats.init();
 		
 		this._scenesManager = new SceneManager();
-		this._scenesManager.init();
+		this._scenesManager.init(this._config.scenes.path);
+		Utils.log(this._scenesManager.scenes);
 	}
 
 	run() {
@@ -62,7 +62,8 @@ var app = new App({
 	}
 });
 
-app.init()
+app
+	.init()
 	.then(function() {
 		app.run();
-	})
+	});
