@@ -114,6 +114,11 @@ class ScenesManager {
 			return el.id === id;
 		})[0];
 	}
+
+	// Remove after tests
+	get currentScene() {
+		return this._scenes[0];
+	}
 }
 
 export default ScenesManager;

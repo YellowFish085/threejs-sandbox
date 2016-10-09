@@ -51,6 +51,13 @@ class App {
 
 	run() {
 		Utils.log('Running!');
+		this._renderer.preRender(); // just for test
+		this.render();
+	}
+
+	render() {
+		requestAnimationFrame(this.render.bind(this));
+		this._renderer.render();
 	}
 }
 
