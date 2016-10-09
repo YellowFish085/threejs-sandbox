@@ -43661,28 +43661,6 @@ var Utils = function () {
 				}
 			}
 		}
-	}, {
-		key: 'findObjectIndexInArray',
-		value: function findObjectIndexInArray(id, arr) {
-			for (var i = 0; i < arr.length; i++) {
-				if (arr[i].id === id) {
-					return i;
-				}
-			}
-
-			return false;
-		}
-	}, {
-		key: 'findObjectInArray',
-		value: function findObjectInArray(id, arr) {
-			for (var i = 0; i < arr.length; i++) {
-				if (arr[i].id === id) {
-					return arr[i];
-				}
-			}
-
-			return false;
-		}
 	}]);
 
 	return Utils;
@@ -43725,7 +43703,12 @@ var CameraFactory = function () {
 				fov: 75,
 				aspect: window.innerWidth / window.innerHeight,
 				near: 0.1,
-				far: 1000
+				far: 1000,
+				position: {
+					x: 0,
+					y: 0,
+					z: 0
+				}
 			});
 
 			// Usefull if aspect is something like "window.innerWidth / window.innerHeight"
@@ -43783,6 +43766,10 @@ var PerspectiveCamera = function () {
 		_classCallCheck(this, PerspectiveCamera);
 
 		this._camera = new THREE.PerspectiveCamera(options.fov, options.aspect, options.near, options.far);
+
+		this._camera.position.x = options.position.x;
+		this._camera.position.y = options.position.y;
+		this._camera.position.z = options.position.z;
 	}
 
 	_createClass(PerspectiveCamera, [{
@@ -43973,7 +43960,7 @@ var App = function () {
 		key: 'run',
 		value: function run() {
 			_utils2.default.log('Running!');
-			this._renderer.preRender(); // just for test
+			this._renderer.setupScene();
 			this.render();
 		}
 	}, {
@@ -43993,7 +43980,125 @@ var app = new App({
 	}
 });
 
-},{"./_classes/utils":8,"./loader/loader":11,"./renderer/renderer":13,"./stats/stats":19,"es6-promise":2,"three":6}],13:[function(require,module,exports){
+},{"./_classes/utils":8,"./loader/loader":11,"./renderer/renderer":15,"./stats/stats":21,"es6-promise":2,"three":6}],13:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _three = require('three');
+
+var THREE = _interopRequireWildcard(_three);
+
+var _utils = require('../_classes/utils');
+
+var _utils2 = _interopRequireDefault(_utils);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var MaterialsFactory = function () {
+	function MaterialsFactory() {
+		_classCallCheck(this, MaterialsFactory);
+	}
+
+	_createClass(MaterialsFactory, null, [{
+		key: 'createMaterial',
+		value: function createMaterial(datas) {
+			var material = null;
+
+			if (datas.type === "MeshBasicMaterial") {
+				material = MaterialsFactory.createMeshBasicMaterial(datas);
+			} else {
+				material = MaterialsFactory.createMeshBasicMaterial(datas);
+			}
+
+			if (!material) {
+				throw new Error("Material was not created");
+				return false;
+			} else {
+				return material;
+			}
+		}
+	}, {
+		key: 'createMeshBasicMaterial',
+		value: function createMeshBasicMaterial(datas) {
+			return new THREE.MeshBasicMaterial({
+				color: parseInt(datas.color)
+			});
+		}
+	}]);
+
+	return MaterialsFactory;
+}();
+
+exports.default = MaterialsFactory;
+
+},{"../_classes/utils":8,"three":6}],14:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _three = require('three');
+
+var THREE = _interopRequireWildcard(_three);
+
+var _utils = require('../_classes/utils');
+
+var _utils2 = _interopRequireDefault(_utils);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var MeshesFactory = function () {
+	function MeshesFactory() {
+		_classCallCheck(this, MeshesFactory);
+	}
+
+	_createClass(MeshesFactory, null, [{
+		key: 'createMesh',
+		value: function createMesh(datas, material) {
+			var geometry = null;
+
+			if (datas.type === "BoxGeometry") {
+				geometry = MeshesFactory.createBoxGeometry(datas);
+			} else {
+				geometry = MeshesFactory.createBoxGeometry(datas);
+			}
+
+			if (!geometry) {
+				throw new Error("Geometry was not created");
+				return false;
+			} else {
+				return new THREE.Mesh(geometry, material);
+			}
+		}
+	}, {
+		key: 'createBoxGeometry',
+		value: function createBoxGeometry(datas) {
+			return new THREE.BoxGeometry(datas.width, datas.height, datas.depth);
+		}
+	}]);
+
+	return MeshesFactory;
+}();
+
+exports.default = MeshesFactory;
+
+},{"../_classes/utils":8,"three":6}],15:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -44055,37 +44160,15 @@ var Renderer = function () {
 		value: function displayRenderer() {
 			document.getElementById(this._domElement).appendChild(this._renderer.THREErenderer.domElement);
 		}
-
-		// Remove after tests
-
 	}, {
-		key: 'preRender',
-		value: function preRender() {
-			var geometry = new THREE.BoxGeometry(1, 1, 1);
-			var material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-			this._cube = new THREE.Mesh(geometry, material);
-
-			this._currentScene = this._scenesManager.currentScene;
-			this._currentScene.THREEscene.add(this._cube);
-
-			this._camera = this._currentScene.camera;
-			_utils2.default.log(this._camera);
-			this._camera.THREEcamera.position.z = 5;
+		key: 'setupScene',
+		value: function setupScene() {
+			this._scenesManager.currentScene.setupScene();
 		}
-	}, {
-		key: 'animateCube',
-		value: function animateCube() {
-			this._cube.rotation.x += 0.01;
-			this._cube.rotation.y += 0.01;
-		}
-
-		// End remove after tests
-
 	}, {
 		key: 'render',
 		value: function render() {
-			this.animateCube();
-			this._renderer.THREErenderer.render(this._currentScene.THREEscene, this._camera.THREEcamera);
+			this._renderer.THREErenderer.render(this._scenesManager.currentScene.THREEscene, this._scenesManager.currentScene.camera.THREEcamera);
 		}
 	}]);
 
@@ -44094,7 +44177,7 @@ var Renderer = function () {
 
 exports.default = Renderer;
 
-},{"../_classes/utils":8,"../scenes/scenesManager":17,"./rendererFactory":14,"three":6}],14:[function(require,module,exports){
+},{"../_classes/utils":8,"../scenes/scenesManager":19,"./rendererFactory":16,"three":6}],16:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -44166,7 +44249,7 @@ var RendererFactory = function () {
 
 exports.default = RendererFactory;
 
-},{"../_classes/utils":8,"./renderers_types/webGLRenderer":15,"three":6}],15:[function(require,module,exports){
+},{"../_classes/utils":8,"./renderers_types/webGLRenderer":17,"three":6}],17:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -44203,7 +44286,7 @@ var Renderer = function () {
 
 exports.default = Renderer;
 
-},{"three":6}],16:[function(require,module,exports){
+},{"three":6}],18:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -44259,7 +44342,7 @@ var SceneFactory = function () {
 
 exports.default = SceneFactory;
 
-},{"../_classes/utils":8,"./scenes_types/scene":18}],17:[function(require,module,exports){
+},{"../_classes/utils":8,"./scenes_types/scene":20}],19:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -44427,7 +44510,7 @@ var ScenesManager = function () {
 
 exports.default = ScenesManager;
 
-},{"../_classes/utils":8,"../loader/loader":11,"./sceneFactory":16,"es6-promise":2,"isomorphic-fetch":3}],18:[function(require,module,exports){
+},{"../_classes/utils":8,"../loader/loader":11,"./sceneFactory":18,"es6-promise":2,"isomorphic-fetch":3}],20:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -44452,6 +44535,14 @@ var _cameraFactory = require('../../cameras/cameraFactory');
 
 var _cameraFactory2 = _interopRequireDefault(_cameraFactory);
 
+var _meshesFactory = require('../../meshes/meshesFactory');
+
+var _meshesFactory2 = _interopRequireDefault(_meshesFactory);
+
+var _materialsFactory = require('../../materials/materialsFactory');
+
+var _materialsFactory2 = _interopRequireDefault(_materialsFactory);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
@@ -44473,10 +44564,26 @@ var Scene = function (_IdentifiableObject) {
 		_this._name = datas.name;
 		_this._scene = new THREE.Scene();
 		_this._camera = _cameraFactory2.default.create(datas.camera);
+		_this._meshesDatas = datas.meshes;
+		_this._materialsDatas = datas.materials;
+		_this._meshes = [];
 		return _this;
 	}
 
 	_createClass(Scene, [{
+		key: 'setupScene',
+		value: function setupScene() {
+			for (var i = 0; i < this._meshesDatas.length; i++) {
+				var newMaterial = _materialsFactory2.default.createMaterial(this._meshesDatas[i].material);
+				var newMesh = _meshesFactory2.default.createMesh(this._meshesDatas[i], newMaterial);
+
+				if (newMesh) {
+					this._meshes.push(newMesh);
+					this._scene.add(newMesh);
+				}
+			}
+		}
+	}, {
 		key: 'THREEscene',
 		get: function get() {
 			return this._scene;
@@ -44486,6 +44593,11 @@ var Scene = function (_IdentifiableObject) {
 		get: function get() {
 			return this._camera;
 		}
+	}, {
+		key: 'meshes',
+		get: function get() {
+			return this._meshes;
+		}
 	}]);
 
 	return Scene;
@@ -44493,7 +44605,7 @@ var Scene = function (_IdentifiableObject) {
 
 exports.default = Scene;
 
-},{"../../_classes/identifiableObject":7,"../../_classes/utils":8,"../../cameras/cameraFactory":9,"three":6}],19:[function(require,module,exports){
+},{"../../_classes/identifiableObject":7,"../../_classes/utils":8,"../../cameras/cameraFactory":9,"../../materials/materialsFactory":13,"../../meshes/meshesFactory":14,"three":6}],21:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
