@@ -12,6 +12,10 @@ class PerspectiveCamera {
 			options.near,
 			options.far
 		);
+
+		this._camera.position.x = options.position.x;
+		this._camera.position.y = options.position.y;
+		this._camera.position.z = options.position.z;
 	}
 
 	get THREEcamera() {

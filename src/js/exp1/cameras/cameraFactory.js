@@ -16,7 +16,12 @@ class CameraFactory {
 			fov: 75,
 			aspect: window.innerWidth / window.innerHeight,
 			near: 0.1,
-			far: 1000
+			far: 1000,
+			position: {
+				x: 0,
+				y: 0,
+				z: 0
+			}
 		});
 
 		// Usefull if aspect is something like "window.innerWidth / window.innerHeight"

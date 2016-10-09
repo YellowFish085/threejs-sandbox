@@ -7,8 +7,28 @@
 				"fov": 75,
 				"aspect": "window.innerWidth / window.innerHeight",
 				"near": 0.1,
-				"far": 1000
-			}
+				"far": 1000,
+				"position": {
+					"x": 0,
+					"y": 0,
+					"z": 5
+				}
+			},
+			"meshes": [
+				{
+					"type": "BoxGeometry",
+					"width": 1,
+					"height": 1,
+					"depth": 1,
+					"x": 0,
+					"y": 0,
+					"z": 0,
+					"material": {
+						"type": "MeshBasicMaterial",
+						"color": "0x00ff00"
+					}
+				}
+			]
 		}
 	]
 }

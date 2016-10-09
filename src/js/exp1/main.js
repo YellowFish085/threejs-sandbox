@@ -51,7 +51,7 @@ class App {
 
 	run() {
 		Utils.log('Running!');
-		this._renderer.preRender(); // just for test
+		this._renderer.setupScene();
 		this.render();
 	}
 
