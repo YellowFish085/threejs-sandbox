@@ -2,7 +2,7 @@
 
 import * as THREE from 'three';
 
-import Utils from '../_classes/utils';
+import Utils from '../../_classes/utils';
 
 class PerspectiveCamera {
 	constructor(options) {

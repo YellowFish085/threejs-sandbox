@@ -2,7 +2,7 @@
 
 import Utils from '../_classes/utils';
 
-import PerspectiveCamera from './perspectiveCamera';
+import PerspectiveCamera from './cameras_types/perspectiveCamera';
 
 class CameraFactory {
 	constructor() {

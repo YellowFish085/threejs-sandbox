@@ -1,10 +1,16 @@
 {
 	"debugMode": true,
 	"fps": 60,
+	"domElement": "main",
 	"stats": {
 		"mode": 0
 	},
 	"scenes": {
 		"path": "assets/json/scenes.json"
+	},
+	"renderer": {
+		"type": "WebGLRenderer",
+		"widht": "window.innerWidth",
+		"height": "window.innerHeight"
 	}
 }

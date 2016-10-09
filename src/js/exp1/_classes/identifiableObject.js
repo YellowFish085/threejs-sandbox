@@ -13,6 +13,10 @@ class IdentifiableObject {
 		}
 		return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
 	}
+
+	get id() {
+		return this._id;
+	}
 }
 
 export default IdentifiableObject;

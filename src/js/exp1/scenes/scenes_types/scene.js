@@ -2,10 +2,10 @@
 
 import * as THREE from 'three';
 
-import Utils from '../_classes/utils';
-import IdentifiableObject from '../_classes/identifiableObject';
+import Utils from '../../_classes/utils';
+import IdentifiableObject from '../../_classes/identifiableObject';
 
-import CameraFactory from '../cameras/cameraFactory';
+import CameraFactory from '../../cameras/cameraFactory';
 
 class Scene extends IdentifiableObject {
 	constructor(datas) {
@@ -14,10 +14,6 @@ class Scene extends IdentifiableObject {
 		this._name   = datas.name;
 		this._scene  = new THREE.Scene();
 		this._camera = CameraFactory.create(datas.camera);
-	}
-
-	get id() {
-		return this._id;
 	}
 }
 

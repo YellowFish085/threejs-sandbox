@@ -8,12 +8,14 @@ import Utils from './_classes/utils';
 import Loader from './loader/loader';
 
 import Stats from './stats/stats';
-import SceneManager from './scenes/scenesManager'
+import Renderer from './renderer/renderer';
 
 class App {
 	constructor(options) {
 		this._configPath = options.config.path;
-		this._isReady    = false;
+		this._config     = null;
+		this._stats      = null;
+		this._renderer   = null;
 
 		var init = this.init();
 		init.then(function() {
@@ -30,16 +32,18 @@ class App {
 				
 				Utils.setDebugMode(that._config.debugMode);
 
-				that._stats = new Stats({
-					mode: that._config.stats.mode,
-					fps: that._config.fps
-				});
-				that._stats.init();
-				
-				that._scenesManager = new SceneManager();
+				that._stats    = new Stats();
+				that._renderer = new Renderer(that._config.domElement);
 			})
 			.then(function() {
-				return Promise.all([that._scenesManager.init(that._config.scenes.path)]);
+				return Promise.all([
+					that._stats.init({
+						mode: that._config.stats.mode,
+						fps: that._config.fps
+					}),
+					that._renderer.init(that._config.renderer),
+					that._renderer.initScenes(that._config.scenes)
+				]);
 			})
 
 		return loader;

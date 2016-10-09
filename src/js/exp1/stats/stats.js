@@ -8,19 +8,24 @@ class AppStats {
 	 * fps  = application default fps
 	 * mode = stats mode
 	 */
-	constructor(options) {
-		this._fps = options.fps || 60;
+	constructor() {
+		this._fps   = null;
 		this._stats = new Stats();
-
-		this._stats.setMode(options.mode);
-		this._stats.domElement.style.position = 'absolute';
-		this._stats.domElement.style.top      = '0px';
-		this._stats.domElement.style.left     = '0px';
 	}
 
-	init() {
-		this.appendToBody();
-		this.setInterval();
+	init(options) {
+		return new Promise((resolve, reject) => {
+			this._fps                             = options.fps || 60;
+			this._stats.domElement.style.position = 'absolute';
+			this._stats.domElement.style.top      = '0px';
+			this._stats.domElement.style.left     = '0px';
+			this._stats.setMode(options.mode);
+
+			this.appendToBody();
+			this.setInterval();
+			
+			resolve();
+		});
 	}
 
 	appendToBody() {

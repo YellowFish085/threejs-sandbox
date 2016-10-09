@@ -2,7 +2,7 @@
 
 import Utils from '../_classes/utils';
 
-import Scene from './scene';
+import Scene from './scenes_types/scene';
 
 class SceneFactory {
 	constructor() {
