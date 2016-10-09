@@ -13,7 +13,7 @@ class Utils {
 
 	static log(msg) {
 		if (debugMode) {
-			console.log(msg)
+			console.trace(msg);
 		}
 	}
 
