@@ -15,43 +15,34 @@ class App {
 		this._configPath = options.config.path;
 		this._isReady    = false;
 
-		this.init();
-		window.waitingForInit = setInterval(function() {
-			if (Loader.itemsLoaded()) {
-				clearInterval(window.waitingForInit);
-				Utils.log(Loader.getLoadQueue());
-				app.run();
-				return;
-			}
-		
-			Utils.log('Loading app...');
-		}, 100);
+		var init = this.init();
+		init.then(function() {
+			app.run();
+		})
 	}
 
 	init() {
 		var that = this;
 
-		var loader = Loader.load(this._configPath);
-		loader.then(function(config) {
-			that._config = config;
-			
-			Utils.setDebugMode(that._config.debugMode);
+		var loader = Loader.load(this._configPath)
+			.then(function(config) {
+				that._config = config;
+				
+				Utils.setDebugMode(that._config.debugMode);
 
-			that.initContent();
+				that._stats = new Stats({
+					mode: that._config.stats.mode,
+					fps: that._config.fps
+				});
+				that._stats.init();
+				
+				that._scenesManager = new SceneManager();
+			})
+			.then(function() {
+				return Promise.all([that._scenesManager.init(that._config.scenes.path)]);
+			})
 
-			that._isReady = true;
-		});
-	}
-
-	initContent() {
-		this._stats = new Stats({
-			mode: this._config.stats.mode,
-			fps: this._config.fps
-		});
-		this._stats.init();
-		
-		this._scenesManager = new SceneManager();
-		this._scenesManager.init(this._config.scenes.path);
+		return loader;
 	}
 
 	run() {

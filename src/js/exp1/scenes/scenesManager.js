@@ -20,16 +20,18 @@ class ScenesManager {
 	init(path) {
 		if (!path) {
 			Utils.log('Empty path for scenes datas');
-			return;
+			return false;
 		}
 		
 		var that = this;
 		
-		var loader = Loader.load(path);
-		loader.then(function(datas) {
-			Utils.log(datas);
-			that.initScenes(datas.scenes);
-		});
+		var loader = Loader.load(path)
+			.then(function(datas) {
+				Utils.log(datas);
+				that.initScenes(datas.scenes);
+			});
+
+		return loader;
 	}
 
 	/**
