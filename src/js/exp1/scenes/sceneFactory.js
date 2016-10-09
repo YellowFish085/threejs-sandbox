@@ -9,21 +9,28 @@ class SceneFactory {
 
 	}
 
-	static createScene(options) {
-		// Initialize scene datas
-		Utils.extendObject(options, {
+	/**
+	 * Create a new scene
+	 * @param {JSON} datas - JSON with scene datas
+	 * @return {Scene} - A Scene
+	 */ 
+	static createScene(datas) {
+		// Default scene datas
+		Utils.extendObject(datas, {
 			name: 'Default name',
 		});
 
+		// Create scene
 		var scene = null;
 
-		if (options.type === "Scene") {
-			scene =  new Scene(options);
+		if (datas.type === "Scene") {
+			scene =  new Scene(datas);
 		}
 		else {
-			scene = new Scene(options);
+			scene = new Scene(datas);
 		}
 
+		// Return new scene
 		if (!scene) {
 			throw new Error("Scene was not created");
 			return false;

@@ -14,13 +14,16 @@ class Scene extends IdentifiableObject {
 		super();
 
 		this._name           = datas.name;
-		this._scene          = new THREE.Scene();
-		this._camera         = CameraFactory.create(datas.camera);
+		this._threeScene     = new THREE.Scene();
+		this._threeCamera    = CameraFactory.create(datas.camera);
 		this._meshesDatas    = datas.meshes;
 		this._materialsDatas = datas.materials;
 		this._meshes         = [];
-		}
+	}
 
+	/**
+	 * Initialize all meshes
+	 */
 	setupScene() {
 		for (var i = 0; i < this._meshesDatas.length; i++) {
 			var newMaterial = MaterialsFactory.createMaterial(this._meshesDatas[i].material);
@@ -28,21 +31,17 @@ class Scene extends IdentifiableObject {
 
 			if (newMesh) {
 				this._meshes.push(newMesh);
-				this._scene.add(newMesh);
+				this._threeScene.add(newMesh);
 			}
 		}
 	}
 
-	get THREEscene() {
-		return this._scene;
+	get threeScene() {
+		return this._threeScene;
 	}
 
-	get camera() {
-		return this._camera;
-	}
-
-	get meshes() {
-		return this._meshes;
+	get threeCamera() {
+		return this._threeCamera;
 	}
 }
 

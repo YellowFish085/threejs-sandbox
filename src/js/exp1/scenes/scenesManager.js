@@ -10,12 +10,14 @@ import SceneFactory from './sceneFactory';
 
 class ScenesManager {
 	constructor() {
-		this._scenes = [];
+		this._scenes       = [];
+		this._currentScene = 0;
 	}
 
 	/**
 	 * Initialize scenesManager
 	 * @param {string} path - Path to the json with the scenes datas
+	 * @return {Promise}
 	 */
 	init(path) {
 		if (!path) {
@@ -28,7 +30,7 @@ class ScenesManager {
 		var loader = Loader.load(path)
 			.then(function(datas) {
 				Utils.log(datas);
-				that.initScenes(datas.scenes);
+				that.initScenes(datas);
 			});
 
 		return loader;
@@ -40,13 +42,15 @@ class ScenesManager {
 	 * @return {boolean} true if all scenes are initialized
 	 */
 	initScenes(scenesDatas) {
-		for(var i = 0; i < scenesDatas.length; i++) {
-			if (!this.add(scenesDatas[i])) {
+		for(var i = 0; i < scenesDatas.scenes.length; i++) {
+			if (!this.add(scenesDatas.scenes[i])) {
 				throw new Error('Error while adding scene.')
-				Utils.log(scenesDatas[i]);
+				Utils.log(scenesDatas.scenes[i]);
 				return false;
 			}
 		}
+
+		this._currentScene = parseInt(scenesDatas.defaultScene);
 
 		return true;
 	}
@@ -97,10 +101,6 @@ class ScenesManager {
 		}
 	}
 
-	/**
-	 * Return scenes
-	 * @return {array} Array with scenes
-	 */
 	get scenes() {
 		return this._scenes;
 	}
@@ -115,9 +115,12 @@ class ScenesManager {
 		})[0];
 	}
 
-	// Remove after tests
+	/**
+	 * Get current scene
+	 * @return {Scene} Current scene
+	 */
 	get currentScene() {
-		return this._scenes[0];
+		return this._scenes[this._currentScene];
 	}
 }
 

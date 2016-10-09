@@ -1,4 +1,5 @@
 {
+	"defaultScene": 0,
 	"scenes": [
 		{
 			"name": "First scene",

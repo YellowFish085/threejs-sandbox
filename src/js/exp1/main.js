@@ -23,6 +23,10 @@ class App {
 		})
 	}
 
+	/**
+	 * Initialize app
+	 * @return {Promise}
+	 */
 	init() {
 		var that = this;
 
@@ -49,12 +53,18 @@ class App {
 		return loader;
 	}
 
+	/**
+	 * Run the App
+	 */
 	run() {
 		Utils.log('Running!');
 		this._renderer.setupScene();
 		this.render();
 	}
 
+	/**
+	 * Render the current scene on the Renderer
+	 */
 	render() {
 		requestAnimationFrame(this.render.bind(this));
 		this._renderer.render();

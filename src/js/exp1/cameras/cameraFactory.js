@@ -1,17 +1,22 @@
 'use strict';
 
-import Utils from '../_classes/utils';
+import * as THREE from 'three';
 
-import PerspectiveCamera from './cameras_types/perspectiveCamera';
+import Utils from '../_classes/utils';
 
 class CameraFactory {
 	constructor() {
 
 	}
 
-	static create(options) {
-		// Initialize scene datas
-		Utils.extendObject(options, {
+	/**
+	 * Create a new camera
+	 * @param {JSON} datas - JSON with camera datas
+	 * @return {Camera} - A three.js camera
+	 */
+	static create(datas) {
+		// Default camera settings
+		Utils.extendObject(datas, {
 			type: "PerspectiveCamera",
 			fov: 75,
 			aspect: window.innerWidth / window.innerHeight,
@@ -25,19 +30,21 @@ class CameraFactory {
 		});
 
 		// Usefull if aspect is something like "window.innerWidth / window.innerHeight"
-		if (typeof options.aspect === "string") {
-			options.aspect = eval(options.aspect);
+		if (typeof datas.aspect === "string") {
+			datas.aspect = eval(datas.aspect);
 		}
 
+		// Create new Camera
 		var camera = null;
 
-		if (options.type == "PerspectiveCamera") {
-			camera = new PerspectiveCamera(options);
+		if (datas.type == "PerspectiveCamera") {
+			camera = this.createPerspectiveCamera(datas);
 		}
 		else {
-			camera = new PerspectiveCamera(options);
+			camera = this.createPerspectiveCamera(datas);
 		}
 
+		// Return new camera
 		if (!camera) {
 			throw new Error("Camera was not created");
 			return false;
@@ -45,6 +52,21 @@ class CameraFactory {
 		else {
 			return camera;
 		}
+	}
+
+	static createPerspectiveCamera(datas) {
+		var camera = new THREE.PerspectiveCamera(
+			datas.fov,
+			datas.aspect,
+			datas.near,
+			datas.far
+		);
+
+		camera.position.x = datas.position.x;
+		camera.position.y = datas.position.y;
+		camera.position.z = datas.position.z;
+
+		return camera;
 	}
 }
 

@@ -4,38 +4,43 @@ import * as THREE from 'three';
 
 import Utils from '../_classes/utils';
 
-import WebGLRenderer from './renderers_types/webGLRenderer';
-
 class RendererFactory {
 	constructor() {
 
 	}
-
-	static createRenderer(options) {
-		// Initialize renderer datas
-		Utils.extendObject(options, {
+	
+	/**
+	 * Create a new renderer
+	 * @param {JSON} datas - JSON with renderer datas
+	 * @return {Renderer} - A three.js renderer
+	 */ 
+	static createRenderer(datas) {
+		// Default renderer datas
+		Utils.extendObject(datas, {
 			type: 'WebGLRenderer',
 			width: window.innerWidth,
 			height: window.innerHeight
 		});
 
 		// Usefull if datas contains something like "window.innerWidth"
-		if (typeof options.width === "string") {
-			options.width = eval(options.width);
+		if (typeof datas.width === "string") {
+			datas.width = eval(datas.width);
 		}
-		if (typeof options.height === "string") {
-			options.height = eval(options.height);
+		if (typeof datas.height === "string") {
+			datas.height = eval(datas.height);
 		}
 
+		// Create renderer
 		var renderer = null;
 
-		if (options.type === "WebGLRenderer") {
-			renderer = new WebGLRenderer(options);
+		if (datas.type === "WebGLRenderer") {
+			renderer = RendererFactory.createWebGLRenderer(datas);
 		}
 		else {
-			renderer = new WebGLRenderer(options);
+			renderer = RendererFactory.createWebGLRenderer(datas);
 		}
 
+		// Return new renderer
 		if (!renderer) {
 			throw new Error("Renderer was not created");
 			return false;
@@ -43,6 +48,13 @@ class RendererFactory {
 		else {
 			return renderer;
 		}
+	}
+
+	static createWebGLRenderer(datas) {
+		var renderer = new THREE.WebGLRenderer();
+		renderer.setSize(datas.width, datas.height);
+
+		return renderer;
 	}
 }
 

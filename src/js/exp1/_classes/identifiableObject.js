@@ -5,6 +5,9 @@ class IdentifiableObject {
 		this._id = this.guid();
 	}
 
+	/**
+	 * Generate a pseudo-uniq id
+	 */
 	guid() {
 		function s4() {
 			return Math.floor((1 + Math.random()) * 0x10000)

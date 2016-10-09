@@ -9,7 +9,13 @@ class MeshesFactory {
 
 	}
 
+	/**
+	 * Create a new mesh
+	 * @param {JSON} datas - JSON with mesh datas
+	 * @return {THREE.Mesh} - A three.js mesh
+	 */ 
 	static createMesh(datas, material) {
+		// Create mesh
 		var geometry = null;
 
 		if (datas.type === "BoxGeometry") {
@@ -19,6 +25,7 @@ class MeshesFactory {
 			geometry = MeshesFactory.createBoxGeometry(datas);
 		}
 
+		// Return mesh
 		if (!geometry) {
 			throw new Error("Geometry was not created");
 			return false;

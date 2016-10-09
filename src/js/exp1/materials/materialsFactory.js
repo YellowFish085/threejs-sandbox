@@ -9,7 +9,13 @@ class MaterialsFactory {
 
 	}
 
+	/**
+	 * Create a new material
+	 * @param {JSON} datas - JSON with material datas
+	 * @return {Material} - A three.js material
+	 */ 
 	static createMaterial(datas) {
+		// Create material
 		var material = null;
 
 		if (datas.type === "MeshBasicMaterial") {
@@ -19,6 +25,7 @@ class MaterialsFactory {
 			material = MaterialsFactory.createMeshBasicMaterial(datas);
 		}
 
+		// Return material
 		if (!material) {
 			throw new Error("Material was not created");
 			return false;
