@@ -4,6 +4,7 @@ require('es6-promise').polyfill();
 require('isomorphic-fetch');
 
 import Utils from '../_classes/utils';
+import Loader from '../loader/loader';
 
 import SceneFactory from './sceneFactory';
 
@@ -17,24 +18,18 @@ class ScenesManager {
 	 * @param {string} path - Path to the json with the scenes datas
 	 */
 	init(path) {
-		if (path) {
-			var that = this;
-			
-			fetch(path + '?' + Math.random())
-				.then(function(response) {
-					if (response.status >= 400) {
-						throw new Error('Bad response from server');
-					}
-					return response.json();
-				})
-				.then(function(datas) {
-					Utils.log(datas);
-					that.initScenes(datas.scenes);
-				});
-		}
-		else {
+		if (!path) {
 			Utils.log('Empty path for scenes datas');
+			return;
 		}
+		
+		var that = this;
+		
+		var loader = Loader.load(path);
+		loader.then(function(datas) {
+			Utils.log(datas);
+			that.initScenes(datas.scenes);
+		});
 	}
 
 	/**

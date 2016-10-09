@@ -1,11 +1,11 @@
 'use strict';
 
 require('es6-promise').polyfill();
-require('isomorphic-fetch');
 
 import * as THREE from 'three';
 
 import Utils from './_classes/utils';
+import Loader from './loader/loader';
 
 import Stats from './stats/stats';
 import SceneManager from './scenes/scenesManager'
@@ -14,30 +14,33 @@ class App {
 	constructor(options) {
 		this._configPath = options.config.path;
 		this._isReady    = false;
+
+		this.init();
+		window.waitingForInit = setInterval(function() {
+			if (Loader.itemsLoaded()) {
+				clearInterval(window.waitingForInit);
+				Utils.log(Loader.getLoadQueue());
+				app.run();
+				return;
+			}
+		
+			Utils.log('Loading app...');
+		}, 100);
 	}
 
 	init() {
 		var that = this;
-		return this.loadConfig()
-			.then(function(config) {
-				that._config = config;
-				
-				Utils.setDebugMode(that._config.debugMode);
 
-				that.initContent();
+		var loader = Loader.load(this._configPath);
+		loader.then(function(config) {
+			that._config = config;
+			
+			Utils.setDebugMode(that._config.debugMode);
 
-				that._isReady = true;
-			});
-	}
+			that.initContent();
 
-	loadConfig() {
-		return fetch(this._configPath + '?' + Math.random())
-			.then(function(response) {
-				if (response.status >= 400) {
-					throw new Error("Bad response from server");
-				}
-				return response.json();
-			})
+			that._isReady = true;
+		});
 	}
 
 	initContent() {
@@ -61,9 +64,3 @@ var app = new App({
 		path: 'assets/json/config.json'
 	}
 });
-
-app
-	.init()
-	.then(function() {
-		app.run();
-	});
