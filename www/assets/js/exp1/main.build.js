@@ -43610,6 +43610,11 @@ var IdentifiableObject = function () {
 			}
 			return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
 		}
+	}, {
+		key: 'id',
+		get: function get() {
+			return this._id;
+		}
 	}]);
 
 	return IdentifiableObject;
@@ -43698,7 +43703,7 @@ var _utils = require('../_classes/utils');
 
 var _utils2 = _interopRequireDefault(_utils);
 
-var _perspectiveCamera = require('./perspectiveCamera');
+var _perspectiveCamera = require('./cameras_types/perspectiveCamera');
 
 var _perspectiveCamera2 = _interopRequireDefault(_perspectiveCamera);
 
@@ -43750,7 +43755,7 @@ var CameraFactory = function () {
 
 exports.default = CameraFactory;
 
-},{"../_classes/utils":8,"./perspectiveCamera":10}],10:[function(require,module,exports){
+},{"../_classes/utils":8,"./cameras_types/perspectiveCamera":10}],10:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -43761,7 +43766,7 @@ var _three = require('three');
 
 var THREE = _interopRequireWildcard(_three);
 
-var _utils = require('../_classes/utils');
+var _utils = require('../../_classes/utils');
 
 var _utils2 = _interopRequireDefault(_utils);
 
@@ -43779,7 +43784,7 @@ var PerspectiveCamera = function PerspectiveCamera(options) {
 
 exports.default = PerspectiveCamera;
 
-},{"../_classes/utils":8,"three":6}],11:[function(require,module,exports){
+},{"../../_classes/utils":8,"three":6}],11:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -43903,9 +43908,9 @@ var _stats = require('./stats/stats');
 
 var _stats2 = _interopRequireDefault(_stats);
 
-var _scenesManager = require('./scenes/scenesManager');
+var _renderer = require('./renderer/renderer');
 
-var _scenesManager2 = _interopRequireDefault(_scenesManager);
+var _renderer2 = _interopRequireDefault(_renderer);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -43920,7 +43925,9 @@ var App = function () {
 		_classCallCheck(this, App);
 
 		this._configPath = options.config.path;
-		this._isReady = false;
+		this._config = null;
+		this._stats = null;
+		this._renderer = null;
 
 		var init = this.init();
 		init.then(function () {
@@ -43938,15 +43945,13 @@ var App = function () {
 
 				_utils2.default.setDebugMode(that._config.debugMode);
 
-				that._stats = new _stats2.default({
+				that._stats = new _stats2.default();
+				that._renderer = new _renderer2.default(that._config.domElement);
+			}).then(function () {
+				return Promise.all([that._stats.init({
 					mode: that._config.stats.mode,
 					fps: that._config.fps
-				});
-				that._stats.init();
-
-				that._scenesManager = new _scenesManager2.default();
-			}).then(function () {
-				return Promise.all([that._scenesManager.init(that._config.scenes.path)]);
+				}), that._renderer.init(that._config.renderer), that._renderer.initScenes(that._config.scenes)]);
 			});
 
 			return loader;
@@ -43967,7 +43972,66 @@ var app = new App({
 	}
 });
 
-},{"./_classes/utils":8,"./loader/loader":11,"./scenes/scenesManager":15,"./stats/stats":16,"es6-promise":2,"three":6}],13:[function(require,module,exports){
+},{"./_classes/utils":8,"./loader/loader":11,"./renderer/renderer":13,"./stats/stats":19,"es6-promise":2,"three":6}],13:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _rendererFactory = require('./rendererFactory');
+
+var _rendererFactory2 = _interopRequireDefault(_rendererFactory);
+
+var _scenesManager = require('../scenes/scenesManager');
+
+var _scenesManager2 = _interopRequireDefault(_scenesManager);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Renderer = function () {
+	function Renderer(domElement) {
+		_classCallCheck(this, Renderer);
+
+		this._domElement = domElement;
+		this._renderer = null;
+		this._scenesManager = new _scenesManager2.default();
+	}
+
+	_createClass(Renderer, [{
+		key: 'init',
+		value: function init(datas) {
+			var that = this;
+
+			return new Promise(function (resolve, reject) {
+				that._renderer = _rendererFactory2.default.createRenderer(datas);
+				that.displayRenderer();
+
+				resolve();
+			});
+		}
+	}, {
+		key: 'initScenes',
+		value: function initScenes(datas) {
+			return this._scenesManager.init(datas.path);
+		}
+	}, {
+		key: 'displayRenderer',
+		value: function displayRenderer() {
+			document.getElementById(this._domElement).appendChild(this._renderer.renderer.domElement);
+		}
+	}]);
+
+	return Renderer;
+}();
+
+exports.default = Renderer;
+
+},{"../scenes/scenesManager":17,"./rendererFactory":14}],14:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -43984,13 +44048,9 @@ var _utils = require('../_classes/utils');
 
 var _utils2 = _interopRequireDefault(_utils);
 
-var _identifiableObject = require('../_classes/identifiableObject');
+var _webGLRenderer = require('./renderers_types/webGLRenderer');
 
-var _identifiableObject2 = _interopRequireDefault(_identifiableObject);
-
-var _cameraFactory = require('../cameras/cameraFactory');
-
-var _cameraFactory2 = _interopRequireDefault(_cameraFactory);
+var _webGLRenderer2 = _interopRequireDefault(_webGLRenderer);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -43998,37 +44058,89 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var Scene = function (_IdentifiableObject) {
-	_inherits(Scene, _IdentifiableObject);
-
-	function Scene(datas) {
-		_classCallCheck(this, Scene);
-
-		var _this = _possibleConstructorReturn(this, (Scene.__proto__ || Object.getPrototypeOf(Scene)).call(this));
-
-		_this._name = datas.name;
-		_this._scene = new THREE.Scene();
-		_this._camera = _cameraFactory2.default.create(datas.camera);
-		return _this;
+var RendererFactory = function () {
+	function RendererFactory() {
+		_classCallCheck(this, RendererFactory);
 	}
 
-	_createClass(Scene, [{
-		key: 'id',
-		get: function get() {
-			return this._id;
+	_createClass(RendererFactory, null, [{
+		key: 'createRenderer',
+		value: function createRenderer(options) {
+			// Initialize renderer datas
+			_utils2.default.extendObject(options, {
+				type: 'WebGLRenderer',
+				width: window.innerWidth,
+				height: window.innerHeight
+			});
+
+			// Usefull if datas contains something like "window.innerWidth"
+			if (typeof options.width === "string") {
+				options.width = eval(options.width);
+			}
+			if (typeof options.height === "string") {
+				options.height = eval(options.height);
+			}
+
+			var renderer = null;
+
+			if (options.type === "WebGLRenderer") {
+				renderer = new _webGLRenderer2.default(options);
+			} else {
+				renderer = new _webGLRenderer2.default(options);
+			}
+
+			if (!renderer) {
+				throw new Error("Renderer was not created");
+				return false;
+			} else {
+				return renderer;
+			}
 		}
 	}]);
 
-	return Scene;
-}(_identifiableObject2.default);
+	return RendererFactory;
+}();
 
-exports.default = Scene;
+exports.default = RendererFactory;
 
-},{"../_classes/identifiableObject":7,"../_classes/utils":8,"../cameras/cameraFactory":9,"three":6}],14:[function(require,module,exports){
+},{"../_classes/utils":8,"./renderers_types/webGLRenderer":15,"three":6}],15:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _three = require('three');
+
+var THREE = _interopRequireWildcard(_three);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Renderer = function () {
+	function Renderer(datas) {
+		_classCallCheck(this, Renderer);
+
+		this._renderer = new THREE.WebGLRenderer();
+		this._renderer.setSize(datas.width, datas.height);
+	}
+
+	_createClass(Renderer, [{
+		key: 'renderer',
+		get: function get() {
+			return this._renderer;
+		}
+	}]);
+
+	return Renderer;
+}();
+
+exports.default = Renderer;
+
+},{"three":6}],16:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -44041,7 +44153,7 @@ var _utils = require('../_classes/utils');
 
 var _utils2 = _interopRequireDefault(_utils);
 
-var _scene = require('./scene');
+var _scene = require('./scenes_types/scene');
 
 var _scene2 = _interopRequireDefault(_scene);
 
@@ -44084,7 +44196,7 @@ var SceneFactory = function () {
 
 exports.default = SceneFactory;
 
-},{"../_classes/utils":8,"./scene":13}],15:[function(require,module,exports){
+},{"../_classes/utils":8,"./scenes_types/scene":18}],17:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -44244,7 +44356,59 @@ var ScenesManager = function () {
 
 exports.default = ScenesManager;
 
-},{"../_classes/utils":8,"../loader/loader":11,"./sceneFactory":14,"es6-promise":2,"isomorphic-fetch":3}],16:[function(require,module,exports){
+},{"../_classes/utils":8,"../loader/loader":11,"./sceneFactory":16,"es6-promise":2,"isomorphic-fetch":3}],18:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _three = require('three');
+
+var THREE = _interopRequireWildcard(_three);
+
+var _utils = require('../../_classes/utils');
+
+var _utils2 = _interopRequireDefault(_utils);
+
+var _identifiableObject = require('../../_classes/identifiableObject');
+
+var _identifiableObject2 = _interopRequireDefault(_identifiableObject);
+
+var _cameraFactory = require('../../cameras/cameraFactory');
+
+var _cameraFactory2 = _interopRequireDefault(_cameraFactory);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Scene = function (_IdentifiableObject) {
+	_inherits(Scene, _IdentifiableObject);
+
+	function Scene(datas) {
+		_classCallCheck(this, Scene);
+
+		var _this = _possibleConstructorReturn(this, (Scene.__proto__ || Object.getPrototypeOf(Scene)).call(this));
+
+		_this._name = datas.name;
+		_this._scene = new THREE.Scene();
+		_this._camera = _cameraFactory2.default.create(datas.camera);
+		return _this;
+	}
+
+	return Scene;
+}(_identifiableObject2.default);
+
+exports.default = Scene;
+
+},{"../../_classes/identifiableObject":7,"../../_classes/utils":8,"../../cameras/cameraFactory":9,"three":6}],19:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -44267,23 +44431,30 @@ var AppStats = function () {
   * fps  = application default fps
   * mode = stats mode
   */
-	function AppStats(options) {
+	function AppStats() {
 		_classCallCheck(this, AppStats);
 
-		this._fps = options.fps || 60;
+		this._fps = null;
 		this._stats = new _stats2.default();
-
-		this._stats.setMode(options.mode);
-		this._stats.domElement.style.position = 'absolute';
-		this._stats.domElement.style.top = '0px';
-		this._stats.domElement.style.left = '0px';
 	}
 
 	_createClass(AppStats, [{
 		key: 'init',
-		value: function init() {
-			this.appendToBody();
-			this.setInterval();
+		value: function init(options) {
+			var _this = this;
+
+			return new Promise(function (resolve, reject) {
+				_this._fps = options.fps || 60;
+				_this._stats.domElement.style.position = 'absolute';
+				_this._stats.domElement.style.top = '0px';
+				_this._stats.domElement.style.left = '0px';
+				_this._stats.setMode(options.mode);
+
+				_this.appendToBody();
+				_this.setInterval();
+
+				resolve();
+			});
 		}
 	}, {
 		key: 'appendToBody',
