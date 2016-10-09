@@ -43656,6 +43656,28 @@ var Utils = function () {
 				}
 			}
 		}
+	}, {
+		key: 'findObjectIndexInArray',
+		value: function findObjectIndexInArray(id, arr) {
+			for (var i = 0; i < arr.length; i++) {
+				if (arr[i].id === id) {
+					return i;
+				}
+			}
+
+			return false;
+		}
+	}, {
+		key: 'findObjectInArray',
+		value: function findObjectInArray(id, arr) {
+			for (var i = 0; i < arr.length; i++) {
+				if (arr[i].id === id) {
+					return arr[i];
+				}
+			}
+
+			return false;
+		}
 	}]);
 
 	return Utils;
@@ -43760,6 +43782,109 @@ exports.default = PerspectiveCamera;
 },{"../_classes/utils":8,"three":6}],11:[function(require,module,exports){
 'use strict';
 
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _utils = require('../_classes/utils');
+
+var _utils2 = _interopRequireDefault(_utils);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+require('es6-promise').polyfill();
+require('isomorphic-fetch');
+
+var loadQueue = [];
+
+var Loader = function () {
+	function Loader() {
+		_classCallCheck(this, Loader);
+	}
+
+	_createClass(Loader, null, [{
+		key: 'load',
+		value: function load(path) {
+			if (!path) {
+				throw new Error('Path not specified');
+				return false;
+			}
+
+			path = path + '?' + Math.random();
+
+			loadQueue.push({
+				id: path,
+				resolved: false,
+				loaded: false,
+				error: false,
+				error_type: '',
+				start_time: Date.now(),
+				end_time: null,
+				duration: null
+			});
+			var index = loadQueue.length - 1;
+
+			return fetch(path).then(function (response) {
+				var end_time = Date.now();
+				Loader.itemResolved(index, end_time);
+
+				if (response.status >= 400) {
+					throw new Error("Bad response from server");
+					Loader.itemError(index, response.status);
+				} else {
+					Loader.itemLoaded(index);
+				}
+				return response.json();
+			});
+		}
+	}, {
+		key: 'itemResolved',
+		value: function itemResolved(index, end_time) {
+			loadQueue[index].resolved = true;
+			loadQueue[index].end_time = end_time;
+			loadQueue[index].duration = end_time - loadQueue[index].start_time;
+		}
+	}, {
+		key: 'itemLoaded',
+		value: function itemLoaded(index) {
+			loadQueue[index].loaded = true;
+		}
+	}, {
+		key: 'itemError',
+		value: function itemError(index, type) {
+			loadQueue[index].error = true;
+			loadQueue[index].error_type = type;
+		}
+	}, {
+		key: 'itemsLoaded',
+		value: function itemsLoaded() {
+			for (var i = 0; i < loadQueue.length; i++) {
+				if (!loadQueue[i].resolved) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+	}, {
+		key: 'getLoadQueue',
+		value: function getLoadQueue() {
+			return loadQueue;
+		}
+	}]);
+
+	return Loader;
+}();
+
+exports.default = Loader;
+
+},{"../_classes/utils":8,"es6-promise":2,"isomorphic-fetch":3}],12:[function(require,module,exports){
+'use strict';
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _three = require('three');
@@ -43769,6 +43894,10 @@ var THREE = _interopRequireWildcard(_three);
 var _utils = require('./_classes/utils');
 
 var _utils2 = _interopRequireDefault(_utils);
+
+var _loader = require('./loader/loader');
+
+var _loader2 = _interopRequireDefault(_loader);
 
 var _stats = require('./stats/stats');
 
@@ -43785,7 +43914,6 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 require('es6-promise').polyfill();
-require('isomorphic-fetch');
 
 var App = function () {
 	function App(options) {
@@ -43793,43 +43921,35 @@ var App = function () {
 
 		this._configPath = options.config.path;
 		this._isReady = false;
+
+		var init = this.init();
+		init.then(function () {
+			app.run();
+		});
 	}
 
 	_createClass(App, [{
 		key: 'init',
 		value: function init() {
 			var that = this;
-			return this.loadConfig().then(function (config) {
+
+			var loader = _loader2.default.load(this._configPath).then(function (config) {
 				that._config = config;
 
 				_utils2.default.setDebugMode(that._config.debugMode);
 
-				that.initContent();
+				that._stats = new _stats2.default({
+					mode: that._config.stats.mode,
+					fps: that._config.fps
+				});
+				that._stats.init();
 
-				that._isReady = true;
+				that._scenesManager = new _scenesManager2.default();
+			}).then(function () {
+				return Promise.all([that._scenesManager.init(that._config.scenes.path)]);
 			});
-		}
-	}, {
-		key: 'loadConfig',
-		value: function loadConfig() {
-			return fetch(this._configPath + '?' + Math.random()).then(function (response) {
-				if (response.status >= 400) {
-					throw new Error("Bad response from server");
-				}
-				return response.json();
-			});
-		}
-	}, {
-		key: 'initContent',
-		value: function initContent() {
-			this._stats = new _stats2.default({
-				mode: this._config.stats.mode,
-				fps: this._config.fps
-			});
-			this._stats.init();
 
-			this._scenesManager = new _scenesManager2.default();
-			this._scenesManager.init(this._config.scenes.path);
+			return loader;
 		}
 	}, {
 		key: 'run',
@@ -43847,11 +43967,7 @@ var app = new App({
 	}
 });
 
-app.init().then(function () {
-	app.run();
-});
-
-},{"./_classes/utils":8,"./scenes/scenesManager":14,"./stats/stats":15,"es6-promise":2,"isomorphic-fetch":3,"three":6}],12:[function(require,module,exports){
+},{"./_classes/utils":8,"./loader/loader":11,"./scenes/scenesManager":15,"./stats/stats":16,"es6-promise":2,"three":6}],13:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -43912,7 +44028,7 @@ var Scene = function (_IdentifiableObject) {
 
 exports.default = Scene;
 
-},{"../_classes/identifiableObject":7,"../_classes/utils":8,"../cameras/cameraFactory":9,"three":6}],13:[function(require,module,exports){
+},{"../_classes/identifiableObject":7,"../_classes/utils":8,"../cameras/cameraFactory":9,"three":6}],14:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -43968,7 +44084,7 @@ var SceneFactory = function () {
 
 exports.default = SceneFactory;
 
-},{"../_classes/utils":8,"./scene":12}],14:[function(require,module,exports){
+},{"../_classes/utils":8,"./scene":13}],15:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -43980,6 +44096,10 @@ var _createClass = function () { function defineProperties(target, props) { for 
 var _utils = require('../_classes/utils');
 
 var _utils2 = _interopRequireDefault(_utils);
+
+var _loader = require('../loader/loader');
+
+var _loader2 = _interopRequireDefault(_loader);
 
 var _sceneFactory = require('./sceneFactory');
 
@@ -44008,21 +44128,19 @@ var ScenesManager = function () {
 	_createClass(ScenesManager, [{
 		key: 'init',
 		value: function init(path) {
-			if (path) {
-				var that = this;
-
-				fetch(path + '?' + Math.random()).then(function (response) {
-					if (response.status >= 400) {
-						throw new Error('Bad response from server');
-					}
-					return response.json();
-				}).then(function (datas) {
-					_utils2.default.log(datas);
-					that.initScenes(datas.scenes);
-				});
-			} else {
+			if (!path) {
 				_utils2.default.log('Empty path for scenes datas');
+				return false;
 			}
+
+			var that = this;
+
+			var loader = _loader2.default.load(path).then(function (datas) {
+				_utils2.default.log(datas);
+				that.initScenes(datas.scenes);
+			});
+
+			return loader;
 		}
 
 		/**
@@ -44126,7 +44244,7 @@ var ScenesManager = function () {
 
 exports.default = ScenesManager;
 
-},{"../_classes/utils":8,"./sceneFactory":13,"es6-promise":2,"isomorphic-fetch":3}],15:[function(require,module,exports){
+},{"../_classes/utils":8,"../loader/loader":11,"./sceneFactory":14,"es6-promise":2,"isomorphic-fetch":3}],16:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -44198,7 +44316,7 @@ var AppStats = function () {
 
 exports.default = AppStats;
 
-},{"stats.js":5}]},{},[11])
+},{"stats.js":5}]},{},[12])
 
 
 //# sourceMappingURL=../_map/exp1/main.build.js.map
