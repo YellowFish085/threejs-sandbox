@@ -9,16 +9,8 @@ class Scene extends IdentifiableObject {
 	constructor(datas) {
 		super();
 
-		if (!datas) {
-			datas = {};
-		}
-
-		// Initialize scene datas
-		Utils.extendObject(datas, {
-			name: 'Default name',
-		});
-
-		this._name = datas.name;
+		this._name  = datas.name;
+		this._scene = new THREE.Scene();
 	}
 
 	get id() {

@@ -5,13 +5,17 @@ require('isomorphic-fetch');
 
 import Utils from '../_classes/utils';
 
-import Scene from './scene';
+import SceneFactory from './sceneFactory';
 
 class ScenesManager {
 	constructor() {
 		this._scenes = [];
 	}
 
+	/**
+	 * Initialize scenesManager
+	 * @param {string} path - Path to the json with the scenes datas
+	 */
 	init(path) {
 		if (path) {
 			var that = this;
@@ -19,7 +23,7 @@ class ScenesManager {
 			fetch(path)
 				.then(function(response) {
 					if (response.status >= 400) {
-						throw new Error("Bad response from server");
+						throw new Error('Bad response from server');
 					}
 					return response.json();
 				})
@@ -29,40 +33,85 @@ class ScenesManager {
 				});
 		}
 		else {
-			// Create an empty scene
-			this.add(new Scene());
+			Utils.log('Empty path for scenes datas');
 		}
 	}
 
-	initScenes(scenes) {
-		for(var i = 0; i < scenes.length; i++) {
-			this.add(new Scene(scenes[i]));
+	/**
+	 * Initialize scenes
+	 * @param {JSON} scenesDatas - JSON with the datas
+	 * @return {boolean} true if all scenes are initialized
+	 */
+	initScenes(scenesDatas) {
+		for(var i = 0; i < scenesDatas.length; i++) {
+			if (!this.add(scenesDatas[i])) {
+				throw new Error('Error while adding scene.')
+				Utils.log(scenesDatas[i]);
+				return false;
+			}
 		}
+
+		return true;
 	}
 
-	add(scene) {
+	/**
+	 * Add a scene
+	 * @param {JSON} sceneDatas - JSON with the datas
+	 * @return {boolean} true if scene is added
+	 */
+	add(sceneDatas) {
+		if (!sceneDatas) {
+			return false;
+		}
+
 		var exists = false;
 		for (var i = 0; i < this._scenes.length; i++) {
-			if (this._scenes[i].id === scene.id) {
-				Utils.log('Scene ' + scene.id + ' already in SceneManager. Skip...');
+			if (this._scenes[i].id === sceneDatas.id) {
+				Utils.log('Scene ' + sceneDatas.id + ' already in SceneManager. Skip...');
 				return false
 			}
 		}
 
-		this._scenes.push(scene);
+		var newScene = SceneFactory.createScene(sceneDatas);
+		if (!newScene) {
+			return false;
+		}
+
+		this._scenes.push(newScene);
 		return true;
 	}
 
-	remove(scene) {
-		this._scenes = this._scenes.filter(function(el) {
-			return el.id !== scene.id;
+	/**
+	 * Remove scene
+	 * @param {string} id - Id of the scene
+	 * @return {boolean} true if scene is removed
+	 */
+	remove(id) {
+		var newScenesArray = this._scenes.filter(function(el) {
+			return el.id !== id;
 		})
+
+		if (newScenesArray.length != this._scenes.length) {
+			this._scenes.length = newScenesArray;
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 
+	/**
+	 * Return scenes
+	 * @return {array} Array with scenes
+	 */
 	get scenes() {
 		return this._scenes;
 	}
 
+	/**
+	 * Return a scene
+	 * @param {string} id - Id of the scene
+	 */
 	scene(id) {
 		return this._scenes.filter(function(el) {
 			return el.id === id;
