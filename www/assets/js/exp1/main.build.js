@@ -43762,6 +43762,8 @@ Object.defineProperty(exports, "__esModule", {
 	value: true
 });
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
 var _three = require('three');
 
 var THREE = _interopRequireWildcard(_three);
@@ -43776,11 +43778,22 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var PerspectiveCamera = function PerspectiveCamera(options) {
-	_classCallCheck(this, PerspectiveCamera);
+var PerspectiveCamera = function () {
+	function PerspectiveCamera(options) {
+		_classCallCheck(this, PerspectiveCamera);
 
-	this._camera = new THREE.PerspectiveCamera(options.fov, options.aspect, options.near, options.far);
-};
+		this._camera = new THREE.PerspectiveCamera(options.fov, options.aspect, options.near, options.far);
+	}
+
+	_createClass(PerspectiveCamera, [{
+		key: 'THREEcamera',
+		get: function get() {
+			return this._camera;
+		}
+	}]);
+
+	return PerspectiveCamera;
+}();
 
 exports.default = PerspectiveCamera;
 
@@ -43960,6 +43973,14 @@ var App = function () {
 		key: 'run',
 		value: function run() {
 			_utils2.default.log('Running!');
+			this._renderer.preRender(); // just for test
+			this.render();
+		}
+	}, {
+		key: 'render',
+		value: function render() {
+			requestAnimationFrame(this.render.bind(this));
+			this._renderer.render();
 		}
 	}]);
 
@@ -43981,6 +44002,14 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _three = require('three');
+
+var THREE = _interopRequireWildcard(_three);
+
+var _utils = require('../_classes/utils');
+
+var _utils2 = _interopRequireDefault(_utils);
+
 var _rendererFactory = require('./rendererFactory');
 
 var _rendererFactory2 = _interopRequireDefault(_rendererFactory);
@@ -43990,6 +44019,8 @@ var _scenesManager = require('../scenes/scenesManager');
 var _scenesManager2 = _interopRequireDefault(_scenesManager);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -44022,7 +44053,39 @@ var Renderer = function () {
 	}, {
 		key: 'displayRenderer',
 		value: function displayRenderer() {
-			document.getElementById(this._domElement).appendChild(this._renderer.renderer.domElement);
+			document.getElementById(this._domElement).appendChild(this._renderer.THREErenderer.domElement);
+		}
+
+		// Remove after tests
+
+	}, {
+		key: 'preRender',
+		value: function preRender() {
+			var geometry = new THREE.BoxGeometry(1, 1, 1);
+			var material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+			this._cube = new THREE.Mesh(geometry, material);
+
+			this._currentScene = this._scenesManager.currentScene;
+			this._currentScene.THREEscene.add(this._cube);
+
+			this._camera = this._currentScene.camera;
+			_utils2.default.log(this._camera);
+			this._camera.THREEcamera.position.z = 5;
+		}
+	}, {
+		key: 'animateCube',
+		value: function animateCube() {
+			this._cube.rotation.x += 0.01;
+			this._cube.rotation.y += 0.01;
+		}
+
+		// End remove after tests
+
+	}, {
+		key: 'render',
+		value: function render() {
+			this.animateCube();
+			this._renderer.THREErenderer.render(this._currentScene.THREEscene, this._camera.THREEcamera);
 		}
 	}]);
 
@@ -44031,7 +44094,7 @@ var Renderer = function () {
 
 exports.default = Renderer;
 
-},{"../scenes/scenesManager":17,"./rendererFactory":14}],14:[function(require,module,exports){
+},{"../_classes/utils":8,"../scenes/scenesManager":17,"./rendererFactory":14,"three":6}],14:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -44129,7 +44192,7 @@ var Renderer = function () {
 	}
 
 	_createClass(Renderer, [{
-		key: 'renderer',
+		key: 'THREErenderer',
 		get: function get() {
 			return this._renderer;
 		}
@@ -44344,10 +44407,18 @@ var ScenesManager = function () {
 				return el.id === id;
 			})[0];
 		}
+
+		// Remove after tests
+
 	}, {
 		key: 'scenes',
 		get: function get() {
 			return this._scenes;
+		}
+	}, {
+		key: 'currentScene',
+		get: function get() {
+			return this._scenes[0];
 		}
 	}]);
 
@@ -44362,6 +44433,8 @@ exports.default = ScenesManager;
 Object.defineProperty(exports, "__esModule", {
 	value: true
 });
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _three = require('three');
 
@@ -44402,6 +44475,18 @@ var Scene = function (_IdentifiableObject) {
 		_this._camera = _cameraFactory2.default.create(datas.camera);
 		return _this;
 	}
+
+	_createClass(Scene, [{
+		key: 'THREEscene',
+		get: function get() {
+			return this._scene;
+		}
+	}, {
+		key: 'camera',
+		get: function get() {
+			return this._camera;
+		}
+	}]);
 
 	return Scene;
 }(_identifiableObject2.default);
