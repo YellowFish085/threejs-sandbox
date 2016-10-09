@@ -13,6 +13,10 @@ class PerspectiveCamera {
 			options.far
 		);
 	}
+
+	get THREEcamera() {
+		return this._camera;
+	}
 }
 
 export default PerspectiveCamera;

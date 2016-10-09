@@ -8,7 +8,7 @@ class Renderer {
 		this._renderer.setSize(datas.width, datas.height);
 	}
 
-	get renderer() {
+	get THREErenderer() {
 		return this._renderer;
 	}
 }

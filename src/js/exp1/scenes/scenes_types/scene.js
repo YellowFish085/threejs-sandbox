@@ -15,6 +15,14 @@ class Scene extends IdentifiableObject {
 		this._scene  = new THREE.Scene();
 		this._camera = CameraFactory.create(datas.camera);
 	}
+
+	get THREEscene() {
+		return this._scene;
+	}
+
+	get camera() {
+		return this._camera;
+	}
 }
 
 export default Scene;
