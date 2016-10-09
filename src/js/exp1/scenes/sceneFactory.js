@@ -15,11 +15,21 @@ class SceneFactory {
 			name: 'Default name',
 		});
 
+		var scene = null;
+
 		if (options.type === "Scene") {
-			return new Scene(options);
+			scene =  new Scene(options);
 		}
 		else {
-			return new Scene(options);
+			scene = new Scene(options);
+		}
+
+		if (!scene) {
+			throw new Error("Scene was not created");
+			return false;
+		}
+		else {
+			return scene;
 		}
 	}
 }

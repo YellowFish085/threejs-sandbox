@@ -20,7 +20,7 @@ class ScenesManager {
 		if (path) {
 			var that = this;
 			
-			fetch(path)
+			fetch(path + '?' + Math.random())
 				.then(function(response) {
 					if (response.status >= 400) {
 						throw new Error('Bad response from server');

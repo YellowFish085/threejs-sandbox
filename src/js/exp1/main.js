@@ -3,9 +3,10 @@
 require('es6-promise').polyfill();
 require('isomorphic-fetch');
 
+import * as THREE from 'three';
+
 import Utils from './_classes/utils';
 
-import * as THREE from 'three';
 import Stats from './stats/stats';
 import SceneManager from './scenes/scenesManager'
 
@@ -30,7 +31,7 @@ class App {
 	}
 
 	loadConfig() {
-		return fetch(this._configPath)
+		return fetch(this._configPath + '?' + Math.random())
 			.then(function(response) {
 				if (response.status >= 400) {
 					throw new Error("Bad response from server");
@@ -48,7 +49,6 @@ class App {
 		
 		this._scenesManager = new SceneManager();
 		this._scenesManager.init(this._config.scenes.path);
-		Utils.log(this._scenesManager.scenes);
 	}
 
 	run() {
