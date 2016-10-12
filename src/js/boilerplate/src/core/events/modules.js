@@ -6,8 +6,12 @@
  */
 'use strict';
 
-var modules = [
+import MouseEvents from './modules/mouseEvents';
+import KeyboardEvents from './modules/keyboardEvents';
 
+var modules = [
+	MouseEvents,
+	KeyboardEvents
 ];
 
 export default modules;
