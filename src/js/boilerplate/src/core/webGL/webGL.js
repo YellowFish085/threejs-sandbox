@@ -21,6 +21,10 @@ class WebGL extends EventEmitter {
 		this._camera      = null;                      // Three Camera
 		this._renderer    = null;                      // Three Renderer
 		
+		this.init();
+	}
+
+	init() {
 		this.bind();
 
 		this.createScene();

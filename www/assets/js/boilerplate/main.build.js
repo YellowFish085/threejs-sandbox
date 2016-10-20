@@ -47328,21 +47328,26 @@ var WebGL = function (_EventEmitter) {
 		_this._camera = null; // Three Camera
 		_this._renderer = null; // Three Renderer
 
-		_this.bind();
-
-		_this.createScene();
-		_this.createCamera();
-		_this.createRenderer();
-
-		_this.addEventListener();
-
-		_this._events = new _eventsController2.default();
-
-		document.getElementById(_this._containerId).appendChild(_this._renderer.domElement);
+		_this.init();
 		return _this;
 	}
 
 	_createClass(WebGL, [{
+		key: 'init',
+		value: function init() {
+			this.bind();
+
+			this.createScene();
+			this.createCamera();
+			this.createRenderer();
+
+			this.addEventListener();
+
+			this._events = new _eventsController2.default();
+
+			document.getElementById(this._containerId).appendChild(this._renderer.domElement);
+		}
+	}, {
 		key: 'bind',
 		value: function bind() {
 			this.onResize = this.onResize.bind(this);
